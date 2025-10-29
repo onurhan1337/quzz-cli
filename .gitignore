@@ -1,0 +1,17 @@
+# Binaries
+/quzz
+/quzz.exe
+/dist
+/bin
+
+# Go
+*.exe
+*.test
+*.out
+
+# Editor/OS
+.DS_Store
+.idea/
+.vscode/
+.cursor/
+.claude
