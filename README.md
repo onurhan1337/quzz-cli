@@ -13,31 +13,31 @@ A powerful CLI for debugging React Server Components. Built with Go and Bubble T
 
 ## Installation
 
-### Homebrew (macOS/Linux)
-```bash
-brew tap onurhan1337/tap
-brew install quzz-cli
-```
+### Option 1: Download Pre-built Binaries (Recommended)
 
-### Go Install
-```bash
-go install github.com/onurhan1337/quzz-cli@latest
-```
-Note: The binary will be named `quzz-cli`, so run commands as `quzz-cli` instead of `quzz`.
+Download the latest release for your platform from [GitHub Releases](https://github.com/onurhan1337/quzz-cli/releases).
 
-### Pre-built Binaries
-Download for your platform from [Releases](https://github.com/onurhan1337/quzz-cli/releases).
-
-**Linux/macOS:**
+**macOS/Linux:**
 ```bash
-# Download and extract (replace VERSION and OS/ARCH)
-curl -LO https://github.com/onurhan1337/quzz-cli/releases/download/v1.0.0/quzz-cli_Linux_x86_64.tar.gz
-tar -xzf quzz-cli_Linux_x86_64.tar.gz
+# Download, extract, and install (replace VERSION and OS/ARCH as needed)
+curl -LO https://github.com/onurhan1337/quzz-cli/releases/download/v1.0.0/quzz-cli_Darwin_x86_64.tar.gz
+tar -xzf quzz-cli_Darwin_x86_64.tar.gz
 sudo mv quzz /usr/local/bin/
+quzz --version
 ```
 
 **Windows:**
-Download the `.zip` file from releases and add `quzz.exe` to your PATH.
+1. Download the `.zip` file from [Releases](https://github.com/onurhan1337/quzz-cli/releases)
+2. Extract `quzz.exe`
+3. Add to your PATH or move to a directory in your PATH
+
+### Option 2: Install with Go
+
+```bash
+go install github.com/onurhan1337/quzz-cli@latest
+```
+
+**Note:** The binary will be named `quzz-cli` when using `go install`. Run commands as `quzz-cli` instead of `quzz`.
 
 ## Quick Start
 

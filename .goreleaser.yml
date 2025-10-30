@@ -50,17 +50,3 @@ release:
     name: quzz-cli
   draft: false
   prerelease: auto
-
-brews:
-  - name: quzz-cli
-    repository:
-      owner: onurhan1337
-      name: homebrew-tap
-    description: "CLI tool for visualizing and analyzing quzz traces"
-    homepage: "https://github.com/onurhan1337/quzz-cli"
-    license: "MIT"
-    folder: Formula
-    install: |
-      bin.install "quzz"
-    test: |
-      system "#{bin}/quzz", "--version"
