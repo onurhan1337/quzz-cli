@@ -8,20 +8,20 @@ import (
 )
 
 var (
-	version = "dev"
-	commit  = "none"
-	date    = "unknown"
+	version = "v0.5.6"
+	author  = "Onurhan Demir"
 )
 
 var versionCmd = &cobra.Command{
 	Use:   "version",
 	Short: "Print version information",
-	Long:  `Print the version, commit hash, and build date of the Quzz CLI.`,
+	Long:  `Print the version, author, and build date of the Quzz CLI.`,
 	Run: func(cmd *cobra.Command, args []string) {
-		fmt.Println(ui.TitleStyle.Render("Quzz CLI"))
-		fmt.Printf("%s %s\n", ui.LabelStyle.Render("Version:"), ui.ValueStyle.Render(version))
-		fmt.Printf("%s %s\n", ui.LabelStyle.Render("Commit:"), ui.ValueStyle.Render(commit))
-		fmt.Printf("%s %s\n", ui.LabelStyle.Render("Built:"), ui.ValueStyle.Render(date))
+		ui.PrintTitle("QUZZ CLI")
+		fmt.Println()
+		ui.PrintSectionItem("Version", ui.Highlight.Sprint(version))
+		ui.PrintSectionItem("Author", ui.Value.Sprint(author))
+		fmt.Println()
 	},
 }
 

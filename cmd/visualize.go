@@ -3,14 +3,16 @@ package cmd
 import (
 	"encoding/json"
 	"fmt"
+	"os"
 	"time"
 
+	tea "github.com/charmbracelet/bubbletea"
 	"github.com/onurhan1337/quzz-cli/internal/trace"
 	"github.com/onurhan1337/quzz-cli/internal/ui"
 	"github.com/spf13/cobra"
 )
 
-var (
+type visualizeFlags struct {
 	statsOnly      bool
 	jsonOutput     bool
 	component      string
@@ -25,7 +27,9 @@ var (
 	hasWarning     bool
 	componentRegex string
 	limit          int
-)
+}
+
+var vFlags visualizeFlags
 
 var visualizeCmd = &cobra.Command{
 	Use:   "visualize [path]",
@@ -33,28 +37,12 @@ var visualizeCmd = &cobra.Command{
 	Long: `Visualize and explore traces with powerful filtering options.
 
 Examples:
-  # View all traces
   quzz visualize traces.json
-
-  # Show only statistics
   quzz visualize traces.json --stats
-
-  # Filter by component
   quzz visualize traces.json --component UserProfile
-
-  # Filter by duration range
   quzz visualize traces.json --min-duration 100 --max-duration 500
-
-  # Filter by date range
-  quzz visualize traces.json --start-date 2024-01-01 --end-date 2024-01-31
-
-  # Show only errors
   quzz visualize traces.json --errors
-
-  # Component regex filtering
   quzz visualize traces.json --component-regex "^(Blog|Product)"
-
-  # JSON output for programmatic processing
   quzz visualize traces.json --json`,
 	Args: cobra.ExactArgs(1),
 	RunE: runVisualize,
@@ -63,90 +51,224 @@ Examples:
 func init() {
 	rootCmd.AddCommand(visualizeCmd)
 
-	visualizeCmd.Flags().BoolVarP(&statsOnly, "stats", "s", false, "Show only statistics")
-	visualizeCmd.Flags().BoolVarP(&jsonOutput, "json", "j", false, "Output as JSON")
-	visualizeCmd.Flags().StringVarP(&component, "component", "c", "", "Filter by component name")
-	visualizeCmd.Flags().StringVarP(&operation, "operation", "o", "", "Filter by operation")
-	visualizeCmd.Flags().StringVar(&category, "category", "", "Filter by category")
-	visualizeCmd.Flags().StringVarP(&level, "level", "l", "", "Filter by log level (info, warn, error, debug)")
-	visualizeCmd.Flags().IntVar(&minDuration, "min-duration", 0, "Filter by minimum duration (ms)")
-	visualizeCmd.Flags().IntVar(&maxDuration, "max-duration", 0, "Filter by maximum duration (ms)")
-	visualizeCmd.Flags().StringVar(&startDate, "start-date", "", "Filter by start date (RFC3339 format)")
-	visualizeCmd.Flags().StringVar(&endDate, "end-date", "", "Filter by end date (RFC3339 format)")
-	visualizeCmd.Flags().BoolVar(&hasError, "errors", false, "Show only traces with errors")
-	visualizeCmd.Flags().BoolVar(&hasWarning, "warnings", false, "Show only traces with warnings")
-	visualizeCmd.Flags().StringVar(&componentRegex, "component-regex", "", "Filter components by regex pattern")
-	visualizeCmd.Flags().IntVar(&limit, "limit", 50, "Limit number of traces displayed (0 for all)")
+	flags := visualizeCmd.Flags()
+	flags.BoolVarP(&vFlags.statsOnly, "stats", "s", false, "Show only statistics")
+	flags.BoolVarP(&vFlags.jsonOutput, "json", "j", false, "Output as JSON")
+	flags.StringVarP(&vFlags.component, "component", "c", "", "Filter by component name")
+	flags.StringVarP(&vFlags.operation, "operation", "o", "", "Filter by operation")
+	flags.StringVar(&vFlags.category, "category", "", "Filter by category")
+	flags.StringVarP(&vFlags.level, "level", "l", "", "Filter by log level")
+	flags.IntVar(&vFlags.minDuration, "min-duration", 0, "Filter by minimum duration (ms)")
+	flags.IntVar(&vFlags.maxDuration, "max-duration", 0, "Filter by maximum duration (ms)")
+	flags.StringVar(&vFlags.startDate, "start-date", "", "Filter by start date (RFC3339)")
+	flags.StringVar(&vFlags.endDate, "end-date", "", "Filter by end date (RFC3339)")
+	flags.BoolVar(&vFlags.hasError, "errors", false, "Show only traces with errors")
+	flags.BoolVar(&vFlags.hasWarning, "warnings", false, "Show only traces with warnings")
+	flags.StringVar(&vFlags.componentRegex, "component-regex", "", "Filter by regex pattern")
+	flags.IntVar(&vFlags.limit, "limit", 50, "Limit traces displayed (0 for all)")
 }
 
 func runVisualize(cmd *cobra.Command, args []string) error {
 	tracePath := args[0]
 
-	traceFile, err := trace.LoadTraceFile(tracePath)
+	traceFile, err := loadTraceFile(tracePath)
 	if err != nil {
-		return fmt.Errorf("%s %s", ui.ErrorStyle.Render("Error loading trace file:"), err)
+		return err
 	}
 
-	filterOpts := trace.FilterOptions{
-		Component:      component,
-		Operation:      operation,
-		Category:       category,
-		Level:          level,
-		MinDuration:    minDuration,
-		MaxDuration:    maxDuration,
-		HasError:       hasError,
-		HasWarning:     hasWarning,
-		ComponentRegex: componentRegex,
-	}
-
-	if startDate != "" {
-		t, err := time.Parse(time.RFC3339, startDate)
-		if err != nil {
-			return fmt.Errorf("%s invalid start date format (use RFC3339, e.g., 2024-01-01T00:00:00Z)", ui.ErrorStyle.Render("Error:"))
-		}
-		filterOpts.StartDate = t
-	}
-
-	if endDate != "" {
-		t, err := time.Parse(time.RFC3339, endDate)
-		if err != nil {
-			return fmt.Errorf("%s invalid end date format (use RFC3339, e.g., 2024-01-31T23:59:59Z)", ui.ErrorStyle.Render("Error:"))
-		}
-		filterOpts.EndDate = t
+	filterOpts, err := buildFilterOptions()
+	if err != nil {
+		return err
 	}
 
 	filteredTraces := trace.FilterTraces(traceFile.Traces, filterOpts)
 
 	if len(filteredTraces) == 0 {
-		fmt.Println(ui.WarningStyle.Render("⚠ No traces match the specified filters"))
+		showNoResults()
 		return nil
 	}
 
-	if jsonOutput {
-		output := map[string]interface{}{
-			"traces": filteredTraces,
-			"stats":  trace.CalculateStats(filteredTraces),
-		}
-		jsonData, err := json.MarshalIndent(output, "", "  ")
-		if err != nil {
-			return fmt.Errorf("%s failed to generate JSON output: %w", ui.ErrorStyle.Render("Error:"), err)
-		}
-		fmt.Println(string(jsonData))
-		return nil
+	if vFlags.jsonOutput {
+		return outputJSON(filteredTraces)
 	}
 
-	stats := trace.CalculateStats(filteredTraces)
-
-	if statsOnly {
-		ui.RenderStatsTable(stats)
-	} else {
-		fmt.Println(ui.TitleStyle.Render("📋 Quzz Trace Visualization"))
-		fmt.Println()
-		ui.RenderStatsTable(stats)
-		fmt.Println(ui.HeaderStyle.Render("\n📊 Trace Details"))
-		fmt.Println()
-		ui.RenderTraceTable(filteredTraces, limit)
-	}
-
+	displayTraces(filteredTraces)
 	return nil
+}
+
+func showNoResults() {
+	ui.PrintInfoPanel("NO RESULTS", []string{
+		"No traces match the specified filters",
+		"",
+		"Try adjusting your filter criteria:",
+		"  - Remove or loosen duration constraints",
+		"  - Check component/operation names for typos",
+		"  - Verify date range includes trace data",
+	})
+}
+
+func loadTraceFile(path string) (*trace.TraceFile, error) {
+	traceFile, err := trace.LoadTraceFile(path)
+	if err != nil {
+		ui.PrintWarningPanel("ERROR", []string{
+			fmt.Sprintf("Failed to load trace file: %v", err),
+		})
+		return nil, err
+	}
+	return traceFile, nil
+}
+
+func buildFilterOptions() (trace.FilterOptions, error) {
+	opts := trace.FilterOptions{
+		Component:      vFlags.component,
+		Operation:      vFlags.operation,
+		Category:       vFlags.category,
+		Level:          vFlags.level,
+		MinDuration:    vFlags.minDuration,
+		MaxDuration:    vFlags.maxDuration,
+		HasError:       vFlags.hasError,
+		HasWarning:     vFlags.hasWarning,
+		ComponentRegex: vFlags.componentRegex,
+	}
+
+	if vFlags.startDate != "" {
+		t, err := time.Parse(time.RFC3339, vFlags.startDate)
+		if err != nil {
+			ui.PrintWarningPanel("INVALID DATE FORMAT", []string{
+				fmt.Sprintf("Start date must be in RFC3339 format: %v", err),
+			})
+			return opts, err
+		}
+		opts.StartDate = t
+	}
+
+	if vFlags.endDate != "" {
+		t, err := time.Parse(time.RFC3339, vFlags.endDate)
+		if err != nil {
+			ui.PrintWarningPanel("INVALID DATE FORMAT", []string{
+				fmt.Sprintf("End date must be in RFC3339 format: %v", err),
+			})
+			return opts, err
+		}
+		opts.EndDate = t
+	}
+
+	return opts, nil
+}
+
+func outputJSON(traces []trace.TraceEntry) error {
+	output := map[string]interface{}{
+		"traces": traces,
+		"stats":  trace.CalculateStats(traces),
+	}
+
+	jsonData, err := json.MarshalIndent(output, "", "  ")
+	if err != nil {
+		ui.PrintWarningPanel("JSON ERROR", []string{
+			fmt.Sprintf("Failed to generate JSON output: %v", err),
+		})
+		return err
+	}
+
+	fmt.Println(string(jsonData))
+	return nil
+}
+
+func displayTraces(traces []trace.TraceEntry) {
+	stats := trace.CalculateStats(traces)
+
+	if vFlags.statsOnly {
+		displayActiveFilters()
+		displayStats(stats)
+	} else {
+		m := ui.NewModel(traces, stats)
+		p := tea.NewProgram(m, tea.WithAltScreen())
+		if _, err := p.Run(); err != nil {
+			ui.PrintWarningPanel("VISUALIZATION ERROR", []string{
+				fmt.Sprintf("Error running visualization: %v", err),
+			})
+			os.Exit(1)
+		}
+	}
+}
+
+func displayActiveFilters() {
+	filters := []string{}
+
+	if vFlags.component != "" {
+		filters = append(filters, fmt.Sprintf("Component: %s", ui.Highlight.Sprint(vFlags.component)))
+	}
+	if vFlags.operation != "" {
+		filters = append(filters, fmt.Sprintf("Operation: %s", ui.Highlight.Sprint(vFlags.operation)))
+	}
+	if vFlags.category != "" {
+		filters = append(filters, fmt.Sprintf("Category: %s", ui.Highlight.Sprint(vFlags.category)))
+	}
+	if vFlags.level != "" {
+		filters = append(filters, fmt.Sprintf("Level: %s", ui.Highlight.Sprint(vFlags.level)))
+	}
+	if vFlags.minDuration > 0 {
+		filters = append(filters, fmt.Sprintf("Min Duration: %s", ui.Highlight.Sprintf("%dms", vFlags.minDuration)))
+	}
+	if vFlags.maxDuration > 0 {
+		filters = append(filters, fmt.Sprintf("Max Duration: %s", ui.Highlight.Sprintf("%dms", vFlags.maxDuration)))
+	}
+	if vFlags.hasError {
+		filters = append(filters, ui.Error.Sprint("Errors only"))
+	}
+	if vFlags.hasWarning {
+		filters = append(filters, ui.Warning.Sprint("Warnings only"))
+	}
+	if vFlags.componentRegex != "" {
+		filters = append(filters, fmt.Sprintf("Component Pattern: %s", ui.Highlight.Sprint(vFlags.componentRegex)))
+	}
+	if vFlags.startDate != "" {
+		filters = append(filters, fmt.Sprintf("Start Date: %s", ui.Value.Sprint(vFlags.startDate)))
+	}
+	if vFlags.endDate != "" {
+		filters = append(filters, fmt.Sprintf("End Date: %s", ui.Value.Sprint(vFlags.endDate)))
+	}
+	if vFlags.limit > 0 && vFlags.limit != 50 {
+		filters = append(filters, fmt.Sprintf("Limit: %s", ui.Highlight.Sprintf("%d", vFlags.limit)))
+	}
+
+	if len(filters) > 0 {
+		ui.PrintInfoPanel("ACTIVE FILTERS", filters)
+		fmt.Println()
+	}
+}
+
+func displayStats(stats trace.TraceStats) {
+	ui.PrintTitle("QUZZ STATISTICS")
+	fmt.Println()
+
+	ui.PrintBlockStart("OVERVIEW")
+	ui.PrintBlockItem(fmt.Sprintf("Total Traces:       %s", ui.Highlight.Sprint(stats.TotalTraces)))
+	ui.PrintBlockItem(fmt.Sprintf("Total Duration:     %s", ui.Orange3.Sprintf("%.2fs", float64(stats.TotalDuration)/1000.0)))
+	ui.PrintBlockItem(fmt.Sprintf("Average Duration:   %s", ui.Orange3.Sprintf("%.2fms", stats.AverageDuration)))
+	ui.PrintBlockItem(fmt.Sprintf("Min Duration:       %s", ui.Value.Sprintf("%dms", stats.MinDuration)))
+	ui.PrintBlockItem(fmt.Sprintf("Max Duration:       %s", ui.Value.Sprintf("%dms", stats.MaxDuration)))
+	ui.PrintBlockItem(fmt.Sprintf("Errors:             %s", ui.Error.Sprint(stats.ErrorCount)))
+	ui.PrintBlockItem(fmt.Sprintf("Warnings:           %s", ui.Warning.Sprint(stats.WarningCount)))
+	ui.PrintBlockEnd()
+
+	if len(stats.ComponentCounts) > 0 {
+		fmt.Println()
+		ui.PrintBlockStart("COMPONENTS")
+		for component, count := range stats.ComponentCounts {
+			ui.PrintBlockItem(fmt.Sprintf("%-30s %s", component, ui.Highlight.Sprintf("%d", count)))
+		}
+		ui.PrintBlockEnd()
+	}
+
+	if len(stats.LevelCounts) > 0 {
+		fmt.Println()
+		ui.PrintBlockStart("LOG LEVELS")
+		for level, count := range stats.LevelCounts {
+			ui.PrintBlockItem(fmt.Sprintf("%-30s %s", level, ui.Highlight.Sprintf("%d", count)))
+		}
+		ui.PrintBlockEnd()
+	}
+
+	fmt.Println()
 }
