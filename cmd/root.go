@@ -31,17 +31,22 @@ import (
 
 // rootCmd represents the base command when called without any subcommands
 var rootCmd = &cobra.Command{
-	Use:   "quzz-cli",
-	Short: "A brief description of your application",
-	Long: `A longer description that spans multiple lines and likely contains
-examples and usage of using your application. For example:
+	Use:   "quzz",
+	Short: "A powerful CLI companion for Quzz - React Server Components debugging tool",
+	Long: `Quzz CLI - A companion tool for the Quzz debugging library
 
-Cobra is a CLI library for Go that empowers applications.
-This application is a tool to generate the needed files
-to quickly create a Cobra application.`,
-	// Uncomment the following line if your bare application
-	// has an action associated with it:
-	// Run: func(cmd *cobra.Command, args []string) { },
+Quzz helps you visualize, explore, and analyze traces from your React Server
+Components applications. It provides powerful filtering, statistics, and an
+interactive setup wizard for project configuration.
+
+Features:
+  • Visualize traces with rich terminal UI
+  • Powerful filtering by component, duration, date, and more
+  • Statistical analysis of your application performance
+  • Interactive configuration setup
+  • JSON output for programmatic processing
+
+Learn more: https://github.com/onurhan1337/quzz`,
 }
 
 // Execute adds all child commands to the root command and sets flags appropriately.
@@ -54,15 +59,7 @@ func Execute() {
 }
 
 func init() {
-	// Here you will define your flags and configuration settings.
-	// Cobra supports persistent flags, which, if defined here,
-	// will be global for your application.
-
-	// rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "config file (default is $HOME/.quzz-cli.yaml)")
-
-	// Cobra also supports local flags, which will only run
-	// when this action is called directly.
-	rootCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
+	rootCmd.CompletionOptions.DisableDefaultCmd = true
 }
 
 

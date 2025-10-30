@@ -1,0 +1,147 @@
+{
+  "traces": [
+    {
+      "timestamp": "2024-01-15T10:30:45.123Z",
+      "component": "UserProfile",
+      "duration": 142,
+      "props": {
+        "userId": "user_123"
+      },
+      "level": "info",
+      "operation": "render",
+      "category": "component"
+    },
+    {
+      "timestamp": "2024-01-15T10:30:45.265Z",
+      "component": "BlogPost",
+      "duration": 89,
+      "props": {
+        "postId": "post_456",
+        "title": "Getting Started with RSC"
+      },
+      "level": "info",
+      "operation": "render",
+      "category": "component"
+    },
+    {
+      "timestamp": "2024-01-15T10:30:45.354Z",
+      "component": "ProductCard",
+      "duration": 650,
+      "props": {
+        "productId": "prod_789"
+      },
+      "level": "warn",
+      "operation": "render",
+      "category": "component",
+      "performance": {
+        "warnThreshold": 500,
+        "isWarning": true
+      }
+    },
+    {
+      "timestamp": "2024-01-15T10:30:46.012Z",
+      "component": "DataFetcher",
+      "duration": 1200,
+      "props": {
+        "endpoint": "/api/users"
+      },
+      "level": "warn",
+      "operation": "fetch",
+      "category": "data",
+      "performance": {
+        "warnThreshold": 500,
+        "isWarning": true
+      }
+    },
+    {
+      "timestamp": "2024-01-15T10:30:46.213Z",
+      "component": "AuthProvider",
+      "duration": 45,
+      "props": {},
+      "level": "info",
+      "operation": "mount",
+      "category": "provider"
+    },
+    {
+      "timestamp": "2024-01-15T10:30:46.258Z",
+      "component": "ErrorBoundary",
+      "duration": 12,
+      "props": {
+        "fallback": "ErrorPage"
+      },
+      "level": "error",
+      "operation": "catch",
+      "category": "error",
+      "error": "Failed to fetch user data: Network timeout"
+    },
+    {
+      "timestamp": "2024-01-15T10:30:46.270Z",
+      "component": "BlogList",
+      "duration": 234,
+      "props": {
+        "category": "tutorial",
+        "limit": 10
+      },
+      "level": "info",
+      "operation": "render",
+      "category": "component"
+    },
+    {
+      "timestamp": "2024-01-15T10:30:46.504Z",
+      "component": "ProductGrid",
+      "duration": 567,
+      "props": {
+        "categoryId": "cat_321"
+      },
+      "level": "warn",
+      "operation": "render",
+      "category": "component",
+      "performance": {
+        "warnThreshold": 500,
+        "isWarning": true
+      }
+    },
+    {
+      "timestamp": "2024-01-15T10:30:47.071Z",
+      "component": "SearchBar",
+      "duration": 23,
+      "props": {
+        "placeholder": "Search products..."
+      },
+      "level": "debug",
+      "operation": "render",
+      "category": "component"
+    },
+    {
+      "timestamp": "2024-01-15T10:30:47.094Z",
+      "component": "Navigation",
+      "duration": 78,
+      "props": {
+        "activeRoute": "/products"
+      },
+      "level": "info",
+      "operation": "render",
+      "category": "component"
+    },
+    {
+      "timestamp": "2024-01-15T10:30:47.172Z",
+      "component": "Footer",
+      "duration": 15,
+      "props": {},
+      "level": "info",
+      "operation": "render",
+      "category": "component"
+    },
+    {
+      "timestamp": "2024-01-15T10:30:47.187Z",
+      "component": "ThemeProvider",
+      "duration": 8,
+      "props": {
+        "theme": "dark"
+      },
+      "level": "debug",
+      "operation": "mount",
+      "category": "provider"
+    }
+  ]
+}

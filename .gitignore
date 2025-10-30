@@ -9,6 +9,10 @@
 *.test
 *.out
 
+# Test generated configs
+quzz.config.js
+quzz.config.ts
+
 # Editor/OS
 .DS_Store
 .idea/
