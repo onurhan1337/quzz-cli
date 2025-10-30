@@ -32,5 +32,5 @@ jobs:
         run: |
           ./quzz --help
           ./quzz visualize examples/traces.json --stats
-          ./quzz visualize examples/traces.json --limit 3
+          ./quzz visualize examples/traces.json --limit 3 --stats
           ./quzz visualize examples/traces.json --json > output.json
