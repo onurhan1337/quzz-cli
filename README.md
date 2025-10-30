@@ -13,11 +13,31 @@ A powerful CLI for debugging React Server Components. Built with Go and Bubble T
 
 ## Installation
 
+### Homebrew (macOS/Linux)
+```bash
+brew tap onurhan1337/tap
+brew install quzz-cli
+```
+
+### Go Install
 ```bash
 go install github.com/onurhan1337/quzz-cli@latest
 ```
+Note: The binary will be named `quzz-cli`, so run commands as `quzz-cli` instead of `quzz`.
 
-Or download binaries from [Releases](https://github.com/onurhan1337/quzz-cli/releases).
+### Pre-built Binaries
+Download for your platform from [Releases](https://github.com/onurhan1337/quzz-cli/releases).
+
+**Linux/macOS:**
+```bash
+# Download and extract (replace VERSION and OS/ARCH)
+curl -LO https://github.com/onurhan1337/quzz-cli/releases/download/v1.0.0/quzz-cli_Linux_x86_64.tar.gz
+tar -xzf quzz-cli_Linux_x86_64.tar.gz
+sudo mv quzz /usr/local/bin/
+```
+
+**Windows:**
+Download the `.zip` file from releases and add `quzz.exe` to your PATH.
 
 ## Quick Start
 
