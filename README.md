@@ -1,272 +1,126 @@
 # Quzz CLI
 
-A powerful CLI companion for [Quzz](https://github.com/onurhan1337/quzz) - the React Server Components debugging tool. Built with Go and designed for performance, featuring rich terminal UI and powerful filtering capabilities.
+A powerful CLI for debugging React Server Components. Built with Go and Bubble Tea for a modern, interactive terminal experience.
 
 ## Features
 
-- **Trace Visualization**: Beautiful terminal output with statistics and detailed trace information
-- **Powerful Filtering**: Filter by component, operation, duration, date range, and more
-- **Interactive Setup**: Guided configuration wizard for quick project setup
-- **Statistical Analysis**: Get insights into your application's performance
-- **JSON Export**: Machine-readable output for programmatic processing
-- **Rich Terminal UI**: Built with Charm libraries for an excellent CLI experience
+- **Interactive TUI** - Full-screen terminal interface with smooth navigation
+- **Keyboard Shortcuts** - Vim-style (j/k) and arrow keys
+- **Smart Pagination** - Handles large trace files efficiently
+- **Rich Filtering** - By component, duration, date, errors, and more
+- **Statistics Dashboard** - Toggle detailed stats with Tab key
+- **Zero-Config** - Works out of the box
 
 ## Installation
-
-### Go Users
 
 ```bash
 go install github.com/onurhan1337/quzz-cli@latest
 ```
 
-### From Source
-
-```bash
-git clone https://github.com/onurhan1337/quzz-cli.git
-cd quzz-cli
-go build -o quzz
-```
-
-### Binaries
-
-Download pre-built binaries from [Releases](https://github.com/onurhan1337/quzz-cli/releases).
+Or download binaries from [Releases](https://github.com/onurhan1337/quzz-cli/releases).
 
 ## Quick Start
 
-### 1. Initialize Your Project
-
-Run the interactive setup wizard to create a configuration file:
-
+Initialize configuration:
 ```bash
 quzz init
 ```
 
-For TypeScript projects:
-
-```bash
-quzz init --typescript
-```
-
-Skip prompts and use defaults:
-
-```bash
-quzz init --skip-prompts
-```
-
-### 2. Visualize Traces
-
-View all traces from your application:
-
+Visualize traces:
 ```bash
 quzz visualize traces.json
 ```
 
-Show only statistics:
+### Keyboard Shortcuts
 
-```bash
-quzz visualize traces.json --stats
-```
-
-## Usage Examples
-
-### Basic Visualization
-
-```bash
-# View all traces with statistics
-quzz visualize traces.json
-
-# Show only statistics
-quzz visualize traces.json --stats
-
-# Limit displayed traces
-quzz visualize traces.json --limit 100
-```
-
-### Filtering
-
-Filter by component:
-
-```bash
-quzz visualize traces.json --component UserProfile
-```
-
-Filter by duration range:
-
-```bash
-quzz visualize traces.json --min-duration 100 --max-duration 500
-```
-
-Filter by date range:
-
-```bash
-quzz visualize traces.json --start-date 2024-01-01T00:00:00Z --end-date 2024-01-31T23:59:59Z
-```
-
-Filter by log level:
-
-```bash
-quzz visualize traces.json --level error
-```
-
-Show only errors:
-
-```bash
-quzz visualize traces.json --errors
-```
-
-Show only performance warnings:
-
-```bash
-quzz visualize traces.json --warnings
-```
-
-Filter by operation:
-
-```bash
-quzz visualize traces.json --operation render
-```
-
-Use regex to filter components:
-
-```bash
-quzz visualize traces.json --component-regex "^(Blog|Product)"
-```
-
-### Combining Filters
-
-```bash
-quzz visualize traces.json \
-  --component-regex "^Product" \
-  --min-duration 200 \
-  --level warn \
-  --limit 20
-```
-
-### JSON Output
-
-Export filtered results as JSON for further processing:
-
-```bash
-quzz visualize traces.json --json > filtered-traces.json
-```
+| Key | Action |
+|-----|--------|
+| Up / k | Scroll up |
+| Down / j | Scroll down |
+| PgUp / b | Page up |
+| PgDn / f | Page down |
+| Home / g | Jump to top |
+| End / G | Jump to bottom |
+| Tab | Toggle statistics |
+| ? | Show help |
+| q / Esc | Quit |
 
 ## Commands
 
 ### `quzz init`
 
-Initialize Quzz configuration for your project with an interactive setup wizard.
+Interactive setup wizard for project configuration.
 
-**Flags:**
-- `--skip-prompts`: Skip prompts and use default configuration
-- `--typescript`: Generate TypeScript config file
-
-**Example:**
 ```bash
-quzz init --typescript
+quzz init                 # Interactive mode
+quzz init --typescript    # Generate TypeScript config
+quzz init --skip-prompts  # Use defaults
 ```
 
 ### `quzz visualize [path]`
 
-Visualize and explore traces with powerful filtering options.
+View and analyze traces with interactive TUI.
+
+```bash
+quzz visualize traces.json
+```
+
+**Filtering:**
+```bash
+quzz visualize traces.json --component UserProfile
+quzz visualize traces.json --min-duration 100 --max-duration 500
+quzz visualize traces.json --errors
+quzz visualize traces.json --component-regex "^(Blog|Product)"
+```
 
 **Flags:**
-- `-s, --stats`: Show only statistics
-- `-j, --json`: Output as JSON
-- `-c, --component string`: Filter by component name
-- `-o, --operation string`: Filter by operation
-- `--category string`: Filter by category
-- `-l, --level string`: Filter by log level (info, warn, error, debug)
-- `--min-duration int`: Filter by minimum duration (ms)
-- `--max-duration int`: Filter by maximum duration (ms)
-- `--start-date string`: Filter by start date (RFC3339 format)
-- `--end-date string`: Filter by end date (RFC3339 format)
-- `--errors`: Show only traces with errors
-- `--warnings`: Show only traces with warnings
-- `--component-regex string`: Filter components by regex pattern
-- `--limit int`: Limit number of traces displayed (default 50, 0 for all)
-
-**Example:**
-```bash
-quzz visualize traces.json --component UserProfile --min-duration 100
-```
+- `-c, --component` - Filter by component name
+- `-o, --operation` - Filter by operation
+- `-l, --level` - Filter by log level (error, warn, info, debug)
+- `--min-duration` - Minimum duration in ms
+- `--max-duration` - Maximum duration in ms
+- `--errors` - Show only errors
+- `--warnings` - Show only warnings
+- `--component-regex` - Filter by regex pattern
+- `--limit` - Limit number of traces (default: 50)
+- `-j, --json` - Output as JSON
+- `-s, --stats` - Show only statistics
 
 ## Configuration
 
-The `quzz.config.js` or `quzz.config.ts` file configures the Quzz npm package behavior. Example configuration:
+Generated config file (`quzz.config.js` or `quzz.config.ts`):
 
 ```javascript
 module.exports = {
   logLevel: "info",
-  outputFormat: "compact",
+  outputFormat: "pretty",
   performance: {
+    enabled: true,
     warnThreshold: 500,
   },
   componentFilter: /^(Blog|Product)/,
-  sensitiveKeys: ["apiKey", "secretToken", "password"],
 };
-```
-
-## Examples
-
-Check the [examples](./examples) directory for:
-- Sample `traces.json` file
-- Example configuration files (JS and TS)
-
-## Development
-
-### Building
-
-```bash
-go build -o quzz
-```
-
-### Running Tests
-
-```bash
-go test ./...
-```
-
-### Project Structure
-
-```
-quzz-cli/
-├── cmd/                    # Command implementations
-│   ├── root.go            # Root command
-│   ├── init.go            # Init command
-│   └── visualize.go       # Visualize command
-├── internal/              # Internal packages
-│   ├── config/            # Configuration management
-│   ├── trace/             # Trace loading and filtering
-│   └── ui/                # Terminal UI components
-├── examples/              # Example files
-│   ├── traces.json
-│   ├── quzz.config.js
-│   └── quzz.config.ts
-└── main.go               # Entry point
 ```
 
 ## Technologies
 
+- [Bubble Tea](https://github.com/charmbracelet/bubbletea) - TUI framework
+- [Bubbles](https://github.com/charmbracelet/bubbles) - TUI components
+- [Lipgloss](https://github.com/charmbracelet/lipgloss) - Terminal styling
 - [Cobra](https://github.com/spf13/cobra) - CLI framework
-- [Bubble Tea](https://github.com/charmbracelet/bubbletea) - Terminal UI framework
-- [Lipgloss](https://github.com/charmbracelet/lipgloss) - Style definitions for terminal output
-- [tablewriter](https://github.com/olekukonko/tablewriter) - Table rendering
-- [promptui](https://github.com/manifoldco/promptui) - Interactive prompts
 
-## Contributing
+## Development
 
-Contributions are welcome! Please feel free to submit a Pull Request.
+```bash
+go build -o quzz
+go test ./...
+```
 
 ## License
 
 MIT License - see [LICENSE](LICENSE) file for details.
 
-## Related Projects
+## Links
 
-- [Quzz](https://github.com/onurhan1337/quzz) - The main Quzz npm package
-- [Quzz Documentation](https://github.com/onurhan1337/quzz#readme)
-
-## Support
-
-- GitHub Issues: [Report a bug](https://github.com/onurhan1337/quzz-cli/issues)
-- Quzz Main Project: [onurhan1337/quzz](https://github.com/onurhan1337/quzz)
+- [Quzz npm package](https://github.com/onurhan1337/quzz)
+- [Report Issues](https://github.com/onurhan1337/quzz-cli/issues)
